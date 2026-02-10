@@ -1,5 +1,6 @@
 # ECG Data Files (too large for GitHub)
 data/raw/
+data/eval/
 *.dat
 *.mat
 *.h5
