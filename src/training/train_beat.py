@@ -9,12 +9,14 @@ from training.callbacks import make_callbacks
 # from utils.balancing import get_class_weights
 from utils.oversampling import moderate_ros
 
-X = np.load("data/processed/beat_X.npy") # (1084298,180,1)
-y = np.load("data/processed/beat_y.npy") # (1084298,)
+X = np.load("data/processed/beat_X.npy") 
+y = np.load("data/processed/beat_y.npy") 
 
 # Shape of original processed data
 print(X.shape, y.shape)
 print(np.unique(y, return_counts=True))
+
+X = (X - np.mean(X, axis=1, keepdims=True)) / (np.std(X, axis=1, keepdims=True) + 1e-8) # Normalizing the data to have mean 0 and std 1 for each sample, adding a small epsilon to avoid division by zero
 
 # Split the dataset
 X_train, X_val, y_train, y_val = train_test_split(X, y, stratify=y, test_size=0.2)
@@ -28,13 +30,13 @@ model = build_beat_cnn()
 model.fit(
     X_train_resampled, y_train_resampled,
     validation_data=(X_val, y_val),
-    epochs=40,
+    epochs=80,
     batch_size=128,
     # class_weight = get_class_weights(y_train), we don't use it since we are using ROS
     callbacks=make_callbacks("beat")
 )
 
-model.save("models/beat_final.keras")
+model.save("models/beat_final.h5")
 
 
 
