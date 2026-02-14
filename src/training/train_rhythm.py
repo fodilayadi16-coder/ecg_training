@@ -6,30 +6,36 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from models.rhythm_cnn import build_rhythm_cnn
 from training.callbacks import make_callbacks
-# from utils.balancing import get_class_weights
-from utils.oversampling import moderate_ros
+from utils.balancing import get_class_weights
 
+# ── Load pre-processed data (already filtered by clean_ecg) ──
 X = np.load("data/processed/rhythm_X.npy")
 y = np.load("data/processed/rhythm_y.npy")
 
 print("Original classes:", np.unique(y, return_counts=True))
+print("Input shape:", X.shape)
 
-X = (X - np.mean(X, axis=1, keepdims=True)) / (np.std(X, axis=1, keepdims=True) + 1e-8) # Normalizing the data to have mean 0 and std 1 for each sample, adding a small epsilon to avoid division by zero
+# Split by index (stratified)
+X_train, X_val, y_train, y_val = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
 
-X_train, X_val, y_train, y_val = train_test_split(X, y, stratify=y, test_size=0.2) # stratify=y keeps the same class proportions in both sets
+# With 1M+ windows, class weights alone handle the 2.7:1 imbalance — no need for ROS
+class_weights = get_class_weights(y_train)
+class_weights[1] = class_weights[1] * 1.5  # boost AF weight
+print("Class weights:", class_weights)
 
-# Apply moderate ROS only on training set
-X_train_resampled, y_train_resampled = moderate_ros(X_train, y_train)
+# ── Build residual CNN ───────────────────────
+input_shape = X_train.shape[1:]  # e.g. (1800, 1)
+model = build_rhythm_cnn(input_shape=input_shape, num_classes=2, dropout_rate=0.3)
+model.summary()
 
-
-model = build_rhythm_cnn()
+# ── Train ────────────────────────────────────
 model.fit(
-    X_train_resampled, y_train_resampled,
+    X_train, y_train,
     validation_data=(X_val, y_val),
-    epochs=50,
-    batch_size=16,
-  # class_weight = get_class_weights(y_train), # A dictionary where keys are class labels and values are number of samples in that class
-    callbacks=make_callbacks("rhythm")
+    epochs=80,
+    batch_size=128,
+    class_weight=class_weights,
+    callbacks=make_callbacks("rhythm"),
 )
 
 model.save("models/rhythm_final.h5")

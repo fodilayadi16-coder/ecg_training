@@ -7,6 +7,7 @@ from loaders.beat_rec_finder import get_all_records
 from loaders.beat_wfdb_loader import load_record
 from preprocessing.rr_intervals import plot_rr_distribution
 from preprocessing.label_maps import beat_label_map
+from preprocessing.signal_filters import clean_ecg
 
 
 # ----------------------------------------------- Extract Beats from All Records -----------------------------------------------
@@ -34,6 +35,7 @@ def extract_beats(records, window_size=180, collect_rr=True):  # 0.5 seconds seg
                     continue
                 if r - half_window >= 0 and r + half_window < len(signal):   # Checks if the window fits within the signal bounds.
                     beat = signal[r - half_window : r + half_window]
+                    beat = clean_ecg(beat, fs=fs)  # bandpass + notch + z-score
                     X.append(beat)
                     y.append(beat_label_map[symbols[i]])
 
@@ -50,7 +52,7 @@ def extract_beats(records, window_size=180, collect_rr=True):  # 0.5 seconds seg
 # ----------------------------------------------- Main Script -----------------------------------------------
 
 if __name__ == "__main__":
-    records = get_all_records("data/raw")
+    records = get_all_records("data/raw/beat")
     print("Total records found:", len(records))
 
     X, y, rr_intervals  = extract_beats(records)

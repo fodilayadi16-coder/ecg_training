@@ -2,7 +2,7 @@ import os
 
 # ----------------------------------------------- Function to get all records -----------------------------------------------
 
-def get_all_records(base_path="data/raw"):
+def get_all_records(base_path="data/raw/beat"):
     records = []                                                        # it stores a list of strings, where each string is the full file path to an ECG record (e.g., "data/raw/mitdb/100")
     for dataset in os.listdir(base_path):
         dataset_path = os.path.join(base_path, dataset)                 # Constructs the full path to the current eg."data/raw/mitdb"

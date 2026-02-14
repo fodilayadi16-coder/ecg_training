@@ -2,7 +2,7 @@ import os
 
 # ----------------------------------------------- Function to get all records from AFDB -----------------------------------------------
 
-def get_all_records(base_path="data/raw/afdb"):
+def get_all_records(base_path="data/raw/rhythm"):
     records = []
     for file in os.listdir(base_path):
         if file.endswith(".hea"):
