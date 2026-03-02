@@ -1,13 +1,14 @@
 # Project Title
 
-A comprehensive deep learning solution for classifying ECG beats and rhythms, featuring real-time data acquisition from ESP32 with AD8232 sensor and an interactive web visualization dashboard.
+A comprehensive deep learning solution for classifying ECG beats, featuring real-time data acquisition from ESP32 with AD8232 sensor and an interactive web visualization dashboard.
 ---
 
 ## Overview
 
 This project aims to:
-- Develop a deep learning model which can classify different beats and rhythms of ECG into different classes
+- Develop a deep learning model which can classify different beats of ECG into different classes
 - Test the model using ESP32 data and ECG sensor AD8232 for real-time classification
+- Model inference via Raspberry Pi
 - Create a web application to visualize the ECG signal and different feautures (classification, heart rate, etc)
 
 ---
@@ -25,7 +26,7 @@ This project aims to:
 ## Project Structure
 
 ```bash
-ecg_project/
+ecg_training/
 ├── data/                    # Data directory
 │   ├── raw/                 # Raw ECG datasets (MIT-BIH, etc.)
 │   └── processed/           # Cleaned and transformed data
@@ -34,8 +35,9 @@ ecg_project/
 │   ├── models/              # CNN architectures
 │   ├── training/            # Model training pipelines
 │   └── evaluation/          # Performance metrics & visualization
-├── web_app/                 # Real-time monitoring dashboard
-├── firmware/                # ESP32 ECG acquisition code
+│   ├── experiments/         # Cross dataset test
+│   ├── loaders/             # Loading data
+│   └── utils/               # Functions
 ├── requirements.txt         # Python package dependencies
 ├── .gitignore               # Git ignore rules
 └── README.md                # This file

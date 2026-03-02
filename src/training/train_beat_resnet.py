@@ -1,8 +1,6 @@
 import subprocess, sys, os
 
 # ── Resolve project root & set working directory ──
-# This makes all relative paths (data/, models/, etc.) work
-# regardless of where the script is launched from (local or Kaggle).
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 os.chdir(PROJECT_ROOT)
 sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
@@ -15,26 +13,21 @@ except ImportError:
 
 import numpy as np
 from sklearn.model_selection import train_test_split
-from models.beat_cnn import build_beat_cnn
+from models.beat_resnet import build_beat_resnet # Import the new model
 from training.callbacks import make_callbacks
 from utils.oversampling import moderate_ros
 
+# 1. Load Data
 X = np.load("data/processed/beat_X.npy") 
 y = np.load("data/processed/beat_y.npy") 
 
-# Shape of original processed data
-print(X.shape, y.shape)
-print(np.unique(y, return_counts=True))
+# 2. Split
+X_train, X_val, y_train, y_val = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
 
-# Split the dataset
-X_train, X_val, y_train, y_val = train_test_split(X, y, stratify=y, test_size=0.2)
-
-# Apply moderate ROS only on training set to balance the dataset
+# 3. Apply your ROS + Downsampling Logic
 X_train_resampled, y_train_resampled = moderate_ros(X_train, y_train)
 
-print("After ROS:", np.unique(y_train_resampled, return_counts=True))
-
-# Downsample overrepresented classes
+# 4. Downsample overrepresented classes
 class_indices = {cls: np.where(y_train_resampled == cls)[0] for cls in np.unique(y_train_resampled)}
 
 drop_config = {
@@ -64,27 +57,15 @@ y_train_resampled = y_train_resampled[keep_indices]
 
 print("After downsampling:", np.unique(y_train_resampled, return_counts=True))
 
-model = build_beat_cnn()
+# 5. Build and Train
+model = build_beat_resnet(input_shape=(360, 1))
+
 model.fit(
     X_train_resampled, y_train_resampled,
     validation_data=(X_val, y_val),
     epochs=100,
-    batch_size=64,
-    callbacks=make_callbacks("beat")
+    batch_size=32,
+    callbacks=make_callbacks("beat_resnet")
 )
-
-os.makedirs("models", exist_ok=True)
+os.makedirs("models/resnet", exist_ok=True)
 model.save("models/beat_final.h5")
-
-
-
-
-
-
-
-
-
-
-
-
-

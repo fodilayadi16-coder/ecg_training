@@ -12,7 +12,7 @@ from preprocessing.signal_filters import clean_ecg
 
 # ----------------------------------------------- Extract Beats from All Records -----------------------------------------------
 
-def extract_beats(records, window_size=180, collect_rr=True):  # 0.5 seconds segmented window (generally RR interval = 0.6 to 1 second)
+def extract_beats(records, window_size=360, collect_rr=True):  # 1.0s window (180 samples each side of R-peak at 360Hz) — captures P-wave + RR context for S vs N discrimination
     half_window = window_size // 2
     X = []              # input features: beat signals (not suitable for CNN models)
     y = []              # labels
@@ -42,7 +42,7 @@ def extract_beats(records, window_size=180, collect_rr=True):  # 0.5 seconds seg
         except Exception as e:
             print("Skipped:", rec_path, e)
 
-    X = np.array(X).reshape(-1, window_size, 1) # 3D array == Tensor of beat signals (shape: (num_beats, 187, 1))
+    X = np.array(X).reshape(-1, window_size, 1) # 3D array == Tensor of beat signals (shape: (num_beats, 360, 1))
     y = np.array(y)                             # 1D array of shape (beat_labels,)  .eg (1000,)
     rr_intervals_all = np.array(rr_intervals_all)                        
 
